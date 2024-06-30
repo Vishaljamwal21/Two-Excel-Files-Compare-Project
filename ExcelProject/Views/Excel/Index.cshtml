@@ -1,0 +1,77 @@
+﻿@{
+    ViewData["Title"] = "Index";
+}
+@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="container mt-5">
+    <div class="card shadow">
+        <div class="card-body">
+            <h1 class="text-center">Merge and remove duplicate record </h1>
+
+            @if (!string.IsNullOrEmpty(ViewBag.ThankYouMessage))
+            {
+                <div class="alert alert-success text-center">
+                    <p>@ViewBag.ThankYouMessage</p>
+                </div>
+            }
+
+            <form asp-action="UploadFiles" asp-controller="Excel" method="post" enctype="multipart/form-data" class="d-flex flex-column align-items-center">
+                <div class="form-group w-50">
+                    <label for="firstFile">First Excel File:</label>
+                    <input type="file" name="firstFile" id="firstFile" accept=".xlsx" class="form-control" />
+                </div>
+                <div class="form-group w-50">
+                    <label for="secondFile">Second Excel File:</label>
+                    <input type="file" name="secondFile" id="secondFile" accept=".xlsx" class="form-control" />
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">Upload and Compare</button>
+            </form>
+
+            @if (!string.IsNullOrEmpty(ViewBag.MergedFileName))
+            {
+                <div class="text-center mt-5">
+                    <h2>Merged Excel Sheet</h2>
+                    <p>Download the merged Excel sheet: <a href="javascript:void(0);" onclick="downloadMergedFile()" class="btn btn-success">Download</a></p>
+                </div>
+            }
+
+            @if (ViewData.ModelState.IsValid == false)
+            {
+                <div class="validation-summary-errors text-center mt-5">
+                    <ul>
+                        @foreach (var modelState in ViewData.ModelState.Values)
+                        {
+                            foreach (var error in modelState.Errors)
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function downloadMergedFile() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '@Url.Action("GetMergedFileContent", "Excel")', true);
+        xhr.responseType = 'blob';
+
+        xhr.onload = function () {
+            if (this.status === 200) {
+                var blob = new Blob([this.response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                var link = document.createElement("a");
+                link.href = window.URL.createObjectURL(blob);
+                link.download = "@ViewBag.MergedFileName";
+                link.click();
+            }
+        };
+
+        xhr.send();
+    }
+</script>

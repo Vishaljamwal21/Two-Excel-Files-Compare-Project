@@ -1,0 +1,92 @@
+﻿@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="container mt-5">
+    <div class="card shadow">
+        <div class="card-body">
+            <h1 class="text-center">Compare Excel Files And Give 2 Files (one is all single record and second is missing record)</h1>
+
+            @if (!string.IsNullOrEmpty(ViewBag.ThankYouMessage))
+            {
+                <div class="alert alert-success text-center">
+                    <p>@ViewBag.ThankYouMessage</p>
+                </div>
+            }
+
+            <form asp-action="CompareAndGenerateOutputs" asp-controller="Comparison" method="post" enctype="multipart/form-data" class="d-flex flex-column align-items-center">
+                <div class="form-group w-50">
+                    <label for="firstFile">First Excel File:</label>
+                    <input type="file" name="firstFile" id="firstFile" accept=".xlsx" class="form-control" />
+                </div>
+                <div class="form-group w-50">
+                    <label for="secondFile">Second Excel File:</label>
+                    <input type="file" name="secondFile" id="secondFile" accept=".xlsx" class="form-control" />
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">Upload and Compare</button>
+            </form>
+
+            @if (!string.IsNullOrEmpty(ViewBag.FirstOutputFileName) && !string.IsNullOrEmpty(ViewBag.SecondOutputFileName))
+            {
+                <div class="text-center mt-5">
+                    <h2>Output Files</h2>
+                    <p>Download the first output Excel sheet: <a href="javascript:void(0);" onclick="downloadFirstOutputFile()" class="btn btn-success">Download First Output</a></p>
+                    <p>Download the second output Excel sheet: <a href="javascript:void(0);" onclick="downloadSecondOutputFile()" class="btn btn-success">Download Second Output</a></p>
+                </div>
+            }
+
+            @if (ViewData.ModelState.IsValid == false)
+            {
+                <div class="validation-summary-errors text-center mt-5">
+                    <ul>
+                        @foreach (var modelState in ViewData.ModelState.Values)
+                        {
+                            foreach (var error in modelState.Errors)
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    function downloadFirstOutputFile() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '@Url.Action("GetFirstOutputFileContent", "Comparison")', true);
+        xhr.responseType = 'blob';
+
+        xhr.onload = function () {
+            if (this.status === 200) {
+                var blob = new Blob([this.response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                var link = document.createElement("a");
+                link.href = window.URL.createObjectURL(blob);
+                link.download = "@ViewBag.FirstOutputFileName";
+                link.click();
+            }
+        };
+
+        xhr.send();
+    }
+
+    function downloadSecondOutputFile() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '@Url.Action("GetSecondOutputFileContent", "Comparison")', true);
+        xhr.responseType = 'blob';
+
+        xhr.onload = function () {
+            if (this.status === 200) {
+                var blob = new Blob([this.response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                var link = document.createElement("a");
+                link.href = window.URL.createObjectURL(blob);
+                link.download = "@ViewBag.SecondOutputFileName";
+                link.click();
+            }
+        };
+
+        xhr.send();
+    }
+</script>
